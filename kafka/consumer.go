@@ -55,8 +55,7 @@ type Consumer struct {
 	isClosed  uint32
 	isClosing uint32
 
-	streamdalClient        *streamdal.Streamdal
-	streamdalOperationName string
+	streamdalClient *streamdal.Streamdal
 }
 
 // IsClosed returns boolean representing if client is closed or not
@@ -465,7 +464,7 @@ func (c *Consumer) Poll(timeoutMs int) (event Event) {
 		resp := c.streamdalClient.Process(context.Background(), &streamdal.ProcessRequest{
 			ComponentName: "kafka",
 			OperationType: streamdal.OperationTypeConsumer,
-			OperationName: c.streamdalOperationName,
+			OperationName: "kafkacat",
 			Data:          kafkaMessage.Value,
 		})
 
@@ -696,9 +695,6 @@ func NewConsumer(conf *ConfigMap) (*Consumer, error) {
 			c.handle.waitGroup.Done()
 		}()
 	}
-
-	scOperationName, err := confCopy.get("streamdal.operation.name", "default")
-	c.streamdalOperationName = scOperationName.(string)
 
 	sc, err := setupStreamdal()
 	if err != nil {
