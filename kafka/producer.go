@@ -152,8 +152,7 @@ type Producer struct {
 	// checks if Producer has been closed or not.
 	isClosed uint32
 
-	scProducer *streamdal.Streamdal
-	scConsumer *streamdal.Streamdal
+	streamdalClient *streamdal.Streamdal
 }
 
 // IsClosed returns boolean representing if client is closed or not
@@ -317,8 +316,8 @@ func (p *Producer) Produce(msg *Message, deliveryChan chan Event) error {
 		return err
 	}
 
-	if p.scProducer != nil {
-		resp := p.scProducer.Process(context.Background(), &streamdal.ProcessRequest{
+	if p.streamdalClient != nil {
+		resp := p.streamdalClient.Process(context.Background(), &streamdal.ProcessRequest{
 			ComponentName: "kafka",
 			OperationType: streamdal.OperationTypeProducer,
 			OperationName: "kafkacat-producer",
@@ -634,7 +633,7 @@ func NewProducer(conf *ConfigMap) (*Producer, error) {
 		return nil, fmt.Errorf("unable to setup streamdal client: %s", err)
 	}
 
-	p.scProducer = sc
+	p.streamdalClient = sc
 
 	return p, nil
 }

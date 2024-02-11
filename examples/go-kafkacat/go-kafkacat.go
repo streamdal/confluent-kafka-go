@@ -26,6 +26,7 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+
 	"github.com/streamdal/confluent-kafka-go/v2/kafka"
 )
 
@@ -171,6 +172,7 @@ func runConsumer(config *kafka.ConfigMap, topics []string) {
 					fmt.Printf("%s", keyDelim)
 				}
 			}
+
 			fmt.Println(string(e.Value))
 		case kafka.PartitionEOF:
 			fmt.Fprintf(os.Stderr, "%% Reached %v\n", e)

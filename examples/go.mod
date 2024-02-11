@@ -8,7 +8,7 @@ require (
 	github.com/actgardner/gogen-avro/v10 v10.2.1
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/gdamore/tcell v1.4.0
-	github.com/streamdal/confluent-kafka-go/v2 v2.3.0-scProducer
+	github.com/streamdal/confluent-kafka-go/v2 v2.3.0-scProducer-update
 	google.golang.org/protobuf v1.32.0
 )
 

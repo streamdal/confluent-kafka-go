@@ -17,11 +17,14 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	streamdal "github.com/streamdal/streamdal/sdks/go"
 )
 
 /*
@@ -51,6 +54,8 @@ type Consumer struct {
 
 	isClosed  uint32
 	isClosing uint32
+
+	streamdalClient *streamdal.Streamdal
 }
 
 // IsClosed returns boolean representing if client is closed or not
@@ -449,6 +454,25 @@ func (c *Consumer) SeekPartitions(partitions []TopicPartition) ([]TopicPartition
 // Returns nil on timeout, else an Event
 func (c *Consumer) Poll(timeoutMs int) (event Event) {
 	ev, _ := c.handle.eventPoll(nil, timeoutMs, 1, nil)
+
+	if ev != nil && c.streamdalClient != nil {
+		kafkaMessage, ok := ev.(*Message)
+		if !ok {
+			return ev
+		}
+
+		resp := c.streamdalClient.Process(context.Background(), &streamdal.ProcessRequest{
+			ComponentName: "kafka",
+			OperationType: streamdal.OperationTypeConsumer,
+			OperationName: "kafkacat",
+			Data:          kafkaMessage.Value,
+		})
+
+		if resp.Status != streamdal.ExecStatusError {
+			kafkaMessage.Value = resp.Data
+		}
+	}
+
 	return ev
 }
 
@@ -671,6 +695,13 @@ func NewConsumer(conf *ConfigMap) (*Consumer, error) {
 			c.handle.waitGroup.Done()
 		}()
 	}
+
+	sc, err := setupStreamdal()
+	if err != nil {
+		return nil, fmt.Errorf("unable to setup streamdal client for consumer: %s", err)
+	}
+
+	c.streamdalClient = sc
 
 	return c, nil
 }
