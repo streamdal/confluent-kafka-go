@@ -1,14 +1,14 @@
-module github.com/confluentinc/confluent-kafka-go/examples/v2
+module github.com/streamdal/confluent-kafka-go/examples/v2
 
 go 1.17
 
-replace github.com/confluentinc/confluent-kafka-go/v2 => ../
+replace github.com/streamdal/confluent-kafka-go/v2 => ../
 
 require (
 	github.com/actgardner/gogen-avro/v10 v10.2.1
 	github.com/alecthomas/kingpin v2.2.6+incompatible
-	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
 	github.com/gdamore/tcell v1.4.0
+	github.com/streamdal/confluent-kafka-go/v2 v2.3.0
 	google.golang.org/protobuf v1.30.0
 )
 
