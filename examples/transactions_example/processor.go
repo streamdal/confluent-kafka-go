@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/streamdal/confluent-kafka-go/v2/kafka"
 )
 
 // The processor's consumer group id.

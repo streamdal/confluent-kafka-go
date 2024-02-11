@@ -22,9 +22,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
-	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
-	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/test"
+	"github.com/streamdal/confluent-kafka-go/v2/schemaregistry"
+	"github.com/streamdal/confluent-kafka-go/v2/schemaregistry/serde"
+	"github.com/streamdal/confluent-kafka-go/v2/schemaregistry/test"
 )
 
 func TestJSONSchemaSerdeWithSimple(t *testing.T) {

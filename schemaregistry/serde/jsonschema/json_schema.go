@@ -21,10 +21,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
-	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
 	"github.com/invopop/jsonschema"
 	jsonschema2 "github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/streamdal/confluent-kafka-go/v2/schemaregistry"
+	"github.com/streamdal/confluent-kafka-go/v2/schemaregistry/serde"
 )
 
 // Serializer represents a JSON Schema serializer

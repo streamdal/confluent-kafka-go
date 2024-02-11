@@ -1,9 +1,10 @@
-module github.com/confluentinc/confluent-kafka-go/v2
+module github.com/streamdal/confluent-kafka-go/v2
 
 go 1.17
 
 require (
 	github.com/actgardner/gogen-avro/v10 v10.2.1
+	github.com/confluentinc/confluent-kafka-go/v2 v2.3.0
 	github.com/golang/protobuf v1.5.3
 	github.com/heetch/avro v0.4.4
 	github.com/invopop/jsonschema v0.7.0

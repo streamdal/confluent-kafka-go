@@ -25,7 +25,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/streamdal/confluent-kafka-go/v2/kafka"
 )
 
 func main() {
