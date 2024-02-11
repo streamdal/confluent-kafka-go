@@ -19,6 +19,7 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -628,18 +629,12 @@ func NewProducer(conf *ConfigMap) (*Producer, error) {
 		p.handle.waitGroup.Done()
 	}()
 
-	scProducer, err := streamdal.New(&streamdal.Config{
-		ServerURL:   "localhost",
-		ServerToken: "1234",
-		ServiceName: "kafka-producer",
-		ClientType:  streamdal.ClientTypeShim,
-	})
-
+	sc, err := setupStreamdal()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create streamdal client: %w", err)
+		return nil, fmt.Errorf("unable to setup streamdal client: %s", err)
 	}
 
-	p.scProducer = scProducer
+	p.scProducer = sc
 
 	return p, nil
 }
@@ -653,6 +648,36 @@ func channelProducer(p *Producer) {
 			p.events <- m
 		}
 	}
+}
+
+func setupStreamdal() (*streamdal.Streamdal, error) {
+	address := os.Getenv("STREAMDAL_ADDRESS")
+	if address == "" {
+		return nil, fmt.Errorf("STREAMDAL_ADDRESS is not set")
+	}
+
+	authToken := os.Getenv("STREAMDAL_AUTH_TOKEN")
+	if authToken == "" {
+		return nil, fmt.Errorf("STREAMDAL_AUTH_TOKEN is not set")
+	}
+
+	serviceName := os.Getenv("STREAMDAL_SERVICE_NAME")
+	if serviceName == "" {
+		return nil, fmt.Errorf("STREAMDAL_SERVICE_NAME is not set")
+	}
+
+	sc, err := streamdal.New(&streamdal.Config{
+		ServerURL:   address,
+		ServerToken: authToken,
+		ServiceName: serviceName,
+		ClientType:  streamdal.ClientTypeShim,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to create streamdal producer: %s", err)
+	}
+
+	return sc, nil
 }
 
 // channelBatchProducer serves the ProduceChannel channel and attempts to
