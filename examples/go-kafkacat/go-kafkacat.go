@@ -259,6 +259,7 @@ func main() {
 	switch mode {
 	case "produce":
 		confargs.conf["produce.offset.report"] = true
+		confargs.conf["streamdal.operation.name"] = "kafkacat"
 		runProducer((*kafka.ConfigMap)(&confargs.conf), *topic, int32(*partition))
 
 	case "consume":
@@ -269,6 +270,7 @@ func main() {
 		// Enable generation of PartitionEOF events to track
 		// when end of partition is reached.
 		confargs.conf["enable.partition.eof"] = exitEOF
+		confargs.conf["streamdal.operation.name"] = "kafkacat"
 		runConsumer((*kafka.ConfigMap)(&confargs.conf), *topics)
 	}
 
