@@ -22,6 +22,8 @@ import (
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	streamdal "github.com/streamdal/streamdal/sdks/go"
 )
 
 /*
@@ -148,6 +150,9 @@ type Producer struct {
 
 	// checks if Producer has been closed or not.
 	isClosed uint32
+
+	scProducer *streamdal.Streamdal
+	scConsumer *streamdal.Streamdal
 }
 
 // IsClosed returns boolean representing if client is closed or not
@@ -310,6 +315,20 @@ func (p *Producer) Produce(msg *Message, deliveryChan chan Event) error {
 	if err != nil {
 		return err
 	}
+
+	if p.scProducer != nil {
+		resp := p.scProducer.Process(context.Background(), &streamdal.ProcessRequest{
+			ComponentName: "kafka",
+			OperationType: streamdal.OperationTypeProducer,
+			OperationName: "kafkacat-producer",
+			Data:          msg.Value,
+		})
+
+		if resp.Status != streamdal.ExecStatusError {
+			msg.Value = resp.Data
+		}
+	}
+
 	return p.produce(msg, 0, deliveryChan)
 }
 
@@ -608,6 +627,19 @@ func NewProducer(conf *ConfigMap) (*Producer, error) {
 		producer(p)
 		p.handle.waitGroup.Done()
 	}()
+
+	scProducer, err := streamdal.New(&streamdal.Config{
+		ServerURL:   "localhost",
+		ServerToken: "1234",
+		ServiceName: "kafka-producer",
+		ClientType:  streamdal.ClientTypeShim,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create streamdal client: %w", err)
+	}
+
+	p.scProducer = scProducer
 
 	return p, nil
 }
