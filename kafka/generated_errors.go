@@ -337,4 +337,8 @@ const (
 	ErrFeatureUpdateFailed ErrorCode = C.RD_KAFKA_RESP_ERR_FEATURE_UPDATE_FAILED
 	// ErrPrincipalDeserializationFailure Broker: Request principal deserialization failed during forwarding
 	ErrPrincipalDeserializationFailure ErrorCode = C.RD_KAFKA_RESP_ERR_PRINCIPAL_DESERIALIZATION_FAILURE
+	// ErrStreamdalResponseError Streamdal: Executing streamdal's .Process resulted in an internal error
+	ErrStreamdalResponseError ErrorCode = 99_999_001
+	// ErrStreamdalInvalidAssertion Streamdal: Attempted to assert an invalid value (usually kafka.Event -> kafka.Message)
+	ErrStreamdalInvalidAssertion ErrorCode = 99_999_002
 )

@@ -3,6 +3,8 @@ Confluent's Golang Client for Apache Kafka<sup>TM</sup>
 
 > [!IMPORTANT]
 > This library is instrumented with [Streamdal's Go SDK](https://github.com/streamdal/streamdal/tree/main/sdks/go).
+> 
+> Refer to [README.STREAMDAL.md](README.STREAMDAL.md) for more information.
 
 **confluent-kafka-go** is Confluent's Golang client for [Apache Kafka](http://kafka.apache.org/) and the
 [Confluent Platform](https://www.confluent.io/product/compare/).

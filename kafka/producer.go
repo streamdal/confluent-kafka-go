@@ -19,7 +19,6 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync/atomic"
 	"time"
 	"unsafe"
@@ -305,31 +304,34 @@ func (p *Producer) produce(msg *Message, msgFlags int, deliveryChan chan Event) 
 // transmit queue, thus returning immediately.
 // The delivery report will be sent on the provided deliveryChan if specified,
 // or on the Producer object's Events() channel if not.
+//
+// 'src' is an optional list of StreamdalRuntimeConfig objects that can be used
+// to influence the shims behavior when processing messages via streamdal's SDK.
+//
 // msg.Timestamp requires librdkafka >= 0.9.4 (else returns ErrNotImplemented),
 // api.version.request=true, and broker >= 0.10.0.0.
 // msg.Headers requires librdkafka >= 0.11.4 (else returns ErrNotImplemented),
 // api.version.request=true, and broker >= 0.11.0.0.
 // Returns an error if message could not be enqueued.
-func (p *Producer) Produce(msg *Message, deliveryChan chan Event) error {
+func (p *Producer) Produce(msg *Message, deliveryChan chan Event, src ...*StreamdalRuntimeConfig) error {
 	err := p.verifyClient()
 	if err != nil {
 		return err
 	}
 
-	if p.streamdalClient != nil {
-		resp := p.streamdalClient.Process(context.Background(), &streamdal.ProcessRequest{
-			ComponentName: "kafka",
-			OperationType: streamdal.OperationTypeProducer,
-			OperationName: "kafkacat",
-			Data:          msg.Value,
-		})
-
-		if resp.Status != streamdal.ExecStatusError {
-			msg.Value = resp.Data
-		}
+	// Streamdal shim BEGIN
+	event, err := streamdalProcess(p.streamdalClient, streamdal.OperationTypeProducer, msg, src...)
+	if err != nil {
+		return err
 	}
 
-	return p.produce(msg, 0, deliveryChan)
+	newMsg, ok := event.(*Message)
+	if !ok {
+		return newErrorFromString(ErrStreamdalInvalidAssertion, "streamdalProcess did not return a Message")
+	}
+	// Streamdal shim END
+
+	return p.produce(newMsg, 0, deliveryChan)
 }
 
 // Produce a batch of messages.
@@ -510,7 +512,7 @@ func (p *Producer) Purge(flags int) error {
 //	go.produce.channel.size (int, 1000000) - ProduceChannel() buffer size (in number of messages)
 //	go.logs.channel.enable (bool, false) - Forward log to Logs() channel.
 //	go.logs.channel (chan kafka.LogEvent, nil) - Forward logs to application-provided channel instead of Logs(). Requires go.logs.channel.enable=true.
-func NewProducer(conf *ConfigMap) (*Producer, error) {
+func NewProducer(conf *ConfigMap, enableStreamdal ...bool) (*Producer, error) {
 
 	err := versionCheck()
 	if err != nil {
@@ -628,12 +630,16 @@ func NewProducer(conf *ConfigMap) (*Producer, error) {
 		p.handle.waitGroup.Done()
 	}()
 
-	sc, err := setupStreamdal()
-	if err != nil {
-		return nil, fmt.Errorf("unable to setup streamdal client: %s", err)
-	}
+	// Streamdal shim BEGIN
+	if len(enableStreamdal) > 0 && enableStreamdal[0] {
+		sc, err := streamdalSetup()
+		if err != nil {
+			return nil, fmt.Errorf("unable to setup streamdal client for producer: %s", err)
+		}
 
-	p.streamdalClient = sc
+		p.streamdalClient = sc
+	}
+	// Streamdal shim END
 
 	return p, nil
 }
@@ -647,36 +653,6 @@ func channelProducer(p *Producer) {
 			p.events <- m
 		}
 	}
-}
-
-func setupStreamdal() (*streamdal.Streamdal, error) {
-	address := os.Getenv("STREAMDAL_ADDRESS")
-	if address == "" {
-		return nil, fmt.Errorf("STREAMDAL_ADDRESS is not set")
-	}
-
-	authToken := os.Getenv("STREAMDAL_AUTH_TOKEN")
-	if authToken == "" {
-		return nil, fmt.Errorf("STREAMDAL_AUTH_TOKEN is not set")
-	}
-
-	serviceName := os.Getenv("STREAMDAL_SERVICE_NAME")
-	if serviceName == "" {
-		return nil, fmt.Errorf("STREAMDAL_SERVICE_NAME is not set")
-	}
-
-	sc, err := streamdal.New(&streamdal.Config{
-		ServerURL:   address,
-		ServerToken: authToken,
-		ServiceName: serviceName,
-		ClientType:  streamdal.ClientTypeShim,
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to create streamdal producer: %s", err)
-	}
-
-	return sc, nil
 }
 
 // channelBatchProducer serves the ProduceChannel channel and attempts to

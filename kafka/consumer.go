@@ -17,7 +17,6 @@
 package kafka
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"sync/atomic"
@@ -55,6 +54,7 @@ type Consumer struct {
 	isClosed  uint32
 	isClosing uint32
 
+	// streamdal shim
 	streamdalClient *streamdal.Streamdal
 }
 
@@ -451,26 +451,22 @@ func (c *Consumer) SeekPartitions(partitions []TopicPartition) ([]TopicPartition
 //
 //	Subscribe()'s rebalanceCb
 //
+// 'src' is an optional list of StreamdalRuntimeConfig objects that can be used
+// to influence the shims behavior when processing messages via streamdal's SDK.
+//
 // Returns nil on timeout, else an Event
-func (c *Consumer) Poll(timeoutMs int) (event Event) {
+func (c *Consumer) Poll(timeoutMs int, src ...*StreamdalRuntimeConfig) (event Event) {
 	ev, _ := c.handle.eventPoll(nil, timeoutMs, 1, nil)
 
-	if ev != nil && c.streamdalClient != nil {
+	if ev != nil {
 		kafkaMessage, ok := ev.(*Message)
 		if !ok {
 			return ev
 		}
 
-		resp := c.streamdalClient.Process(context.Background(), &streamdal.ProcessRequest{
-			ComponentName: "kafka",
-			OperationType: streamdal.OperationTypeConsumer,
-			OperationName: "kafkacat",
-			Data:          kafkaMessage.Value,
-		})
-
-		if resp.Status != streamdal.ExecStatusError {
-			kafkaMessage.Value = resp.Data
-		}
+		// Streamdal shim BEGIN
+		ev, _ = streamdalProcess(c.streamdalClient, streamdal.OperationTypeConsumer, kafkaMessage, src...)
+		// Streamdal shim END
 	}
 
 	return ev
@@ -612,7 +608,7 @@ func (c *Consumer) Close() (err error) {
 // and number of outdated events and messages but does not eliminate
 // the factor completely. With a channel size of 1 at most one
 // event or message may be outdated.
-func NewConsumer(conf *ConfigMap) (*Consumer, error) {
+func NewConsumer(conf *ConfigMap, enableStreamdal ...bool) (*Consumer, error) {
 
 	err := versionCheck()
 	if err != nil {
@@ -696,12 +692,16 @@ func NewConsumer(conf *ConfigMap) (*Consumer, error) {
 		}()
 	}
 
-	sc, err := setupStreamdal()
-	if err != nil {
-		return nil, fmt.Errorf("unable to setup streamdal client for consumer: %s", err)
-	}
+	// Streamdal shim BEGIN
+	if len(enableStreamdal) > 0 && enableStreamdal[0] {
+		sc, err := streamdalSetup()
+		if err != nil {
+			return nil, fmt.Errorf("unable to setup streamdal client for consumer: %s", err)
+		}
 
-	c.streamdalClient = sc
+		c.streamdalClient = sc
+	}
+	// Streamdal shim END
 
 	return c, nil
 }
