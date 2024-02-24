@@ -6,6 +6,27 @@ This library has been instrumented with [Streamdal's Go SDK](https://github.com/
 By default, the library will not have Streamdal instrumentation enabled; to enable it,
 you will need to pass `true` to the `NewConsumer()` or `NewProducer()` functions.
 
+## What's changed?
+
+The following functions have been modified to accept an additional, _optional_ parameter:
+
+* `NewProducer(conf *ConfigMap)`
+  * Is now `NewProducer(conf *ConfigMap, enableStreamdal ...bool)`
+* `NewConsumer(conf *ConfigMap)`
+  * Is now `NewConsumer(conf *ConfigMap, enableStreamdal ...bool)`
+* `Produce(msg *Message, deliveryChan chan Event)`
+  * Is now `Produce(msg *Message, deliveryChan chan Event, src ...*StreamdalRuntimeConfig)`
+* `Poll(timeoutMs int) (event Event, err error)`
+  * Is now `Poll(timeoutMs int, src ...*StreamdalRuntimeConfig) (event Event, err error)`
+
+`enableStreamdal` bool is used to enable Streamdal instrumentation.
+
+[`*StreamdalRuntimeConfig`](https://github.com/streamdal/confluent-kafka-go/blob/master/kafka/streamdal.go#L23) 
+is used to pass _optional_ Streamdal configuration to the library
+that the shim will use to modify how the Streamdal SDK will behave.
+    
+## Example
+
 A fully working example is provided in [examples/go-kafkacat-streamdal](examples/go-kafkacat-streamdal).
 
 To run the example:
