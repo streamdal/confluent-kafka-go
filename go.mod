@@ -43,8 +43,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/relistan/go-director v0.0.0-20200406104025-dbbf5d95248d // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/streamdal/streamdal/libs/protos v0.1.18 // indirect
-	github.com/streamdal/streamdal/sdks/go v0.1.7 // indirect
+	github.com/streamdal/streamdal/libs/protos v0.1.58 // indirect
+	github.com/streamdal/streamdal/sdks/go v0.1.36 // indirect
 	github.com/tetratelabs/wazero v1.6.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
