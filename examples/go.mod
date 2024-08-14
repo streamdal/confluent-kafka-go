@@ -27,11 +27,11 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/relistan/go-director v0.0.0-20200406104025-dbbf5d95248d // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.2.0 // indirect
-	github.com/streamdal/streamdal/libs/protos v0.1.18 // indirect
-	github.com/streamdal/streamdal/sdks/go v0.1.7 // indirect
-	github.com/tetratelabs/wazero v1.6.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	github.com/streamdal/streamdal/libs/protos v0.1.58 // indirect
+	github.com/streamdal/streamdal/sdks/go v0.1.36 // indirect
+	github.com/tetratelabs/wazero v1.7.3 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20240102182953-50ed04b92917 // indirect
